@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
   release:
-    types: [created]  
+    types: [created]
 
 jobs:
   build:
@@ -15,45 +15,55 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        go-version: [1.21.x]  
+        go-version: [1.21.x]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  
+        uses: actions/checkout@v4
 
       - name: Set up Go ${{ matrix.go-version }}
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Set OS Variables
+        shell: bash
+        run: |
+          case "${{ matrix.os }}" in
+            ubuntu-latest) echo "GOOS=linux" >> $GITHUB_ENV ;;
+            windows-latest) echo "GOOS=windows" >> $GITHUB_ENV ;;
+            macos-latest) echo "GOOS=darwin" >> $GITHUB_ENV ;;
+          esac
+          echo "GOARCH=amd64" >> $GITHUB_ENV
+
       - name: Build binary
         run: |
           cd cmd
-          GOOS=$(echo "${{ matrix.os }}" | sed -e 's/ubuntu-latest/linux/' -e 's/windows-latest/windows/' -e 's/macos-latest/darwin/')
-          GOARCH=amd64
-          go build -o wikistream-$GOOS-amd64-go${{ matrix.go-version }} main.go
+          go build -o wikistream-${{ env.GOOS }}-amd64-go${{ matrix.go-version }} main.go
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4 
+        uses: actions/upload-artifact@v4
         with:
-          name: wikistream-${{ matrix.os }}-go${{ matrix.go-version }}
+          name: wikistream-${{ env.GOOS }}-go${{ matrix.go-version }}
           path: cmd/wikistream-*
 
   release:
     name: Release Binaries
     needs: build
-    if: github.event_name == 'release'  
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  
+        uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4  
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts  # Store all artifacts in a single folder
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: wikistream-*/wikistream-*
-          body: "binaries in case if it's not scaling"
+          files: artifacts/**/*
+          body: "Binaries in case if it not scalable"

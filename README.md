@@ -48,7 +48,7 @@ If I were to store data and then return by a specific date, I would choose **Pos
 2. Processing of queries coming from the bot and replenishment of the master database requires a **buffer**. I think I would put there **message broker Kafka**, as it stores everything on **disk space**, not in RAM. The delay will naturally be longer, but it will be more reliable.  
 3. I would put **caches** to the database.  
 
-Now let's talk about **horizontal scaling**, more precisely about what will be **mashstable**.  
+Now let's talk about **horizontal scaling****, and more specifically, what would constitute **scalability**. 
 
 - So first of all, we have **slave databases**, each of them has limitations, let's create a **pool of slave databases**.  
 - The second is on the side of the **bot request handlers**. Here, after the queue of messages, we put a **balancer**. The balancer will distribute **Pods** that will take pieces of messages and **parallel processing** (read and return). There will definitely be a connection between these handlers and the **pool of slave databases**.  

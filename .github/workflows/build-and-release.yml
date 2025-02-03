@@ -56,6 +56,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: wikistream-*/wikistream-*
-          body: "🚀 New release for WikiStream!"
-
           body: "binaries in case if it's not scaling"
